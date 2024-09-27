@@ -1,0 +1,33 @@
+<div class="layout-topbar">
+    <a class="layout-topbar-logo" routerLink="">
+<!--         <img src="assets/layout/images/{{layoutService.config().colorScheme === 'light' ? 'logo-dark' : 'logo-white'}}.svg" alt="logo">-->
+        <span>Kitchen Licenses</span>
+    </a>
+
+    <button #menubutton class="p-link layout-menu-button layout-topbar-button" (click)="layoutService.onMenuToggle()">
+        <i class="pi pi-bars"></i>
+    </button>
+
+    <button #topbarmenubutton class="p-link layout-topbar-menu-button layout-topbar-button" (click)="layoutService.showProfileSidebar()">
+        <i class="pi pi-ellipsis-v"></i>
+    </button>
+
+    <div #topbarmenu class="layout-topbar-menu" [ngClass]="{'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible}">
+        <button (click)="logoutDialog=true" class="p-link layout-topbar-button">
+            <i class="pi pi-lock"></i>
+            <span>Profile</span>
+        </button>
+    </div>
+</div>
+
+<p-dialog [(visible)]="logoutDialog" [style]="{ width: '500px', height: '200px' }" header="Warning!"
+    [modal]="true" styleClass="p-fluid">
+    <ng-template pTemplate="content">
+        <p>Are sure you want to log out?</p>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancel" icon="pi pi-times" [text]="true" (click)="logoutDialog=false" />
+        <p-button label="Confrim" icon="pi pi-check" [text]="true" (click)="logout()"  />
+    </ng-template>
+</p-dialog>

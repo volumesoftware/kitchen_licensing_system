@@ -1,0 +1,224 @@
+<div class="card">
+    <p-toast />
+    <p-toolbar styleClass="mb-4 gap-2">
+        <ng-template pTemplate="left">
+            <p-button severity="success" label="New" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+            <p-button severity="danger" label="Delete" icon="pi pi-trash" (onClick)="deleteSelectedLicenses()"
+                [disabled]="!selectedLicenses || !selectedLicenses.length" />
+        </ng-template>
+
+    </p-toolbar>
+
+    <p-table #dt [value]="licenses" [rows]="10" [paginator]="true"
+        [globalFilterFields]="['email', 'premise_address', 'computer_serial_no', 'status']"
+        [tableStyle]="{ 'min-width': '75rem' }" [(selection)]="selectedLicenses" dataKey="id" rowGroupMode="rowspan"
+        groupRowsBy="email.value" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+        [showCurrentPageReport]="true">
+
+        <ng-template pTemplate="caption">
+            <div class="flex align-items-center justify-content-between">
+                <h5 class="m-0">Manage Licenses</h5>
+                <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')"
+                        placeholder="Search..." />
+                </span>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 4rem">
+                    <p-tableHeaderCheckbox />
+                </th>
+                <th pSortableColumn="email" style="min-width:15rem">
+                    Email <p-sortIcon field="email" />
+                </th>
+
+                <th pSortableColumn="licenseId" style="min-width:15rem">
+                    License ID <p-sortIcon field="licenseId" />
+                </th>
+
+                <th pSortableColumn="premiseAddress" style="min-width:10rem">
+                    Premise Address <p-sortIcon field="premiseAddress" />
+                </th>
+                <th pSortableColumn="stateus" style="min-width:10rem">
+                    Status <p-sortIcon field="stateus" />
+                </th>
+                <th pSortableColumn="expiryDate" style="min-width:10rem">
+                    Expiry Date <p-sortIcon field="expiryDate" />
+                </th>
+                <th pSortableColumn="dailyTimeout" style="min-width:10rem">
+                    Daily Timeout <p-sortIcon field="dailyTimeout" />
+                </th>
+                <th></th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-license let-rowIndex="rowIndex" let-rowgroup="rowgroup" let-rowspan="rowspan">
+            <tr>
+                <td>
+                    <p-tableCheckbox [value]="license" />
+                </td>
+                <td *ngIf="rowgroup" [attr.rowspan]="rowspan">
+                    <span class="font-bold ml-2">{{license.email}}</span>
+                </td>
+                <td>
+                    {{ license.licenseId }}
+                </td>
+
+                <td>
+                    {{ license.premiseAddress }}
+                </td>
+
+                <td>
+                    <p-tag [value]="license.status" [severity]="getSeverity(license.status)" />
+                </td>
+                <td>
+                    {{ license.expiryDate | date }}
+                </td>
+
+                <td>
+                    {{ license?.dailyTimeout.hour }}:{{ license?.dailyTimeout.minute }}
+                </td>
+
+                <td>
+                    <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" severity="success"
+                        (onClick)="editLicense(license)" />
+                    <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+                        (onClick)="deleteLicense(license)" />
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="summary">
+            <div class="flex align-items-center justify-content-between">
+                In total there are {{ licenses ? licenses.length : 0 }} licenses.
+            </div>
+        </ng-template>
+    </p-table>
+
+    <p-dialog [(visible)]="licenseDialog" [style]="{ width: '600px', height: '700px' }" header="License Details"
+        [modal]="true" styleClass="p-fluid">
+        <ng-template pTemplate="content">
+
+            <div class="field">
+                <label for="status">License Status</label>
+                <p-dropdown [(ngModel)]="license.status" inputId="status" [options]="statuses">
+                    <ng-template pTemplate="selectedItem">
+                        <p-tag [value]="license.status" [severity]="getSeverity(license.status)" />
+                    </ng-template>
+                    <ng-template let-option pTemplate="item">
+                        <p-tag [value]="option.label" [severity]="getSeverity(option.value)" />
+                    </ng-template>
+                </p-dropdown>
+            </div>
+
+            <div class="field">
+                <label for="description">Expiry Date</label>
+                <p-calendar [(ngModel)]="license.expiryDate" [showIcon]="true"></p-calendar>
+
+            </div>
+
+            <!-- <div class="field">
+                <label for="description">Daily Timeout</label>
+
+                <p-calendar [(ngModel)]="license.dailyTimeout" [iconDisplay]="'input'" [showIcon]="true"
+                    [timeOnly]="true" inputId="templatedisplay">
+                    <ng-template pTemplate="inputicon" let-clickCallBack="clickCallBack">
+                        <i class="pi pi-clock pointer-events-none"></i>
+                    </ng-template>
+                </p-calendar>
+
+            </div> -->
+            <div class="field flex flex-wrap gap-3 p-fluid">
+                <div class="flex-auto">
+                    <label class="mb-2 block font-bold" for="minmax-buttons">
+                        Hour
+                    </label>
+                    <p-inputNumber [(ngModel)]="license.dailyTimeout.hour" mode="decimal" [showButtons]="true"
+                        inputId="minmax-buttons" max="23" [min]="0" [max]="23" />
+                </div>
+                <div class="flex-auto">
+                    <label class="mb-2 block font-bold" for="minmax-buttons">
+                        Minute
+                    </label>
+                    <p-inputNumber [(ngModel)]="license.dailyTimeout.minute" mode="decimal" [showButtons]="true"
+                        inputId="minmax-buttons" [min]="0" [max]="59" />
+                </div>
+
+            </div>
+
+
+
+            <div class="field">
+                <label for="name">Email</label>
+                <!-- <p-autoComplete id="email" [(ngModel)]="license.email" [virtualScroll]="true"
+                                    [suggestions]="filteredEmails" [virtualScrollItemSize]="34" (completeMethod)="filterItems($event)"
+                                    field="label" [dropdown]="true" autofocus /> -->
+
+                    <input type="text" pInputText [(ngModel)]="license.email" />
+
+                <small class="p-error" *ngIf="submitted && !license.email">
+                    Email is required.
+                </small>
+            </div>
+            <div class="field">
+                <label for="name">Computer Serial No</label>
+                <input type="text" pInputText id="computerSerialNo" [(ngModel)]="license.computerSerialNo" required
+                    autofocus />
+                <small class="p-error" *ngIf="submitted && !license.computerSerialNo">
+                    Computer Serial No is required.
+                </small>
+            </div>
+            <div class="field">
+                <label for="description">Premise Address</label>
+                <textarea id="premiseAddress" pInputTextarea [(ngModel)]="license.premiseAddress" required rows="3"
+                    cols="20">
+                    </textarea>
+            </div>
+
+
+
+            <!-- <div class="field">
+                <label class="mb-3">Category</label>
+                <div class="formgrid grid">
+                    <div class="field-radiobutton col-6">
+                        <p-radioButton id="category1" name="category" value="Accessories"
+                            [(ngModel)]="license.category" />
+                        <label for="category1">Accessories</label>
+                    </div>
+                    <div class="field-radiobutton col-6">
+                        <p-radioButton id="category2" name="category" value="Clothing" [(ngModel)]="license.category" />
+                        <label for="category2">Clothing</label>
+                    </div>
+                    <div class="field-radiobutton col-6">
+                        <p-radioButton id="category3" name="category" value="Electronics"
+                            [(ngModel)]="license.category" />
+                        <label for="category3">Electronics</label>
+                    </div>
+                    <div class="field-radiobutton col-6">
+                        <p-radioButton id="category4" name="category" value="Fitness" [(ngModel)]="license.category" />
+                        <label for="category4">Fitness</label>
+                    </div>
+                </div>
+            </div> -->
+
+            <!-- <div class="formgrid grid">
+                <div class="field col">
+                    <label for="price">Price</label>
+                    <p-inputNumber id="price" [(ngModel)]="license.price" mode="currency" currency="USD"
+                        locale="en-US" />
+                </div>
+                <div class="field col">
+                    <label for="quantity">Quantity</label>
+                    <p-inputNumber id="quantity" [(ngModel)]="license.quantity" />
+                </div>
+            </div> -->
+        </ng-template>
+
+        <ng-template pTemplate="footer">
+            <p-button label="Cancel" icon="pi pi-times" [text]="true" (onClick)="hideDialog()" />
+            <p-button label="Save" icon="pi pi-check" [text]="true" (onClick)="saveLicense()" />
+        </ng-template>
+    </p-dialog>
+
+    <p-confirmDialog [style]="{ width: '450px' }" />
+</div>

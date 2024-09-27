@@ -1,0 +1,174 @@
+<div class="card">
+    <p-toast />
+    <p-toolbar styleClass="mb-4 gap-2">
+        <ng-template pTemplate="left">
+            <p-button severity="success" label="New" icon="pi pi-plus" class="mr-2" (onClick)="openNew()" />
+            <p-button severity="danger" label="Delete" icon="pi pi-trash" (onClick)="deleteSelectedProducts()"
+                [disabled]="!selectedProducts || !selectedProducts.length" />
+        </ng-template>
+
+    </p-toolbar>
+
+    <p-table #dt [value]="ingredients" [rows]="10" [paginator]="true"
+        [globalFilterFields]="['email', 'premise_address', 'computer_serial_no', 'status']"
+        [tableStyle]="{ 'min-width': '75rem' }" [(selection)]="selectedIngredients" [rowHover]="true" dataKey="id"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [showCurrentPageReport]="true">
+        <ng-template pTemplate="caption">
+            <div class="flex align-items-center justify-content-between">
+                <h5 class="m-0">Manage Ingredients</h5>
+                <span class="p-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')"
+                        placeholder="Search..." />
+                </span>
+            </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width: 4rem">
+                    <p-tableHeaderCheckbox />
+                </th>
+                <th pSortableColumn="ingredientId" style="min-width:15rem">
+                    Ingredient ID <p-sortIcon field="ingredientId" />
+                </th>
+                <th pSortableColumn="email">
+                    Email <p-sortIcon field="email" />
+                </th>
+                <th pSortableColumn="premiseAddress" style="min-width:10rem">
+                    Premise Address <p-sortIcon field="premiseAddress" />
+                </th>
+                <th pSortableColumn="stateus" style="min-width:10rem">
+                    Status <p-sortIcon field="stateus" />
+                </th>
+                <th pSortableColumn="expiryDate" style="min-width:10rem">
+                    Expiry Date <p-sortIcon field="expiryDate" />
+                </th>
+                <th></th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-ingredient>
+            <tr>
+                <td>
+                    <p-tableCheckbox [value]="ingredient" />
+                </td>
+                <td>
+                    {{ ingredient.ingredientId }}
+                </td>
+                <td>
+                    {{ ingredient.email }}
+                </td>
+                <td>
+                    {{ ingredient.premiseAddress }}
+                </td>
+
+                <td>
+                    <p-tag [value]="ingredient.status" [severity]="getSeverity(ingredient.status)" />
+                </td>
+                <td>
+                    {{ ingredient.expiryDate | date }}
+                </td>
+                <td>
+                    <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" severity="success"
+                        (onClick)="editProduct(ingredient)" />
+                    <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+                        (onClick)="deleteProduct(ingredient)" />
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="summary">
+            <div class="flex align-items-center justify-content-between">
+                In total there are {{ ingredients ? ingredients.length : 0 }} ingredients.
+            </div>
+        </ng-template>
+    </p-table>
+
+    <p-dialog [(visible)]="ingredientDialog" [style]="{ width: '500px', height: '600px' }" header="Ingredient Details" [modal]="true"
+        styleClass="p-fluid">
+        <ng-template pTemplate="content">
+
+            <div class="field">
+                <label for="status">Ingredient Status</label>
+                <p-dropdown [(ngModel)]="ingredient.status" inputId="status" [options]="statuses">
+                    <ng-template pTemplate="selectedItem">
+                        <p-tag [value]="ingredient.status" [severity]="getSeverity(ingredient.status)" />
+                    </ng-template>
+                    <ng-template let-option pTemplate="item">
+                        <p-tag [value]="option.label" [severity]="getSeverity(option.value)" />
+                    </ng-template>
+                </p-dropdown>
+            </div>
+
+            <div class="field">
+                <label for="description">Expiry Date</label>
+                <p-calendar  [(ngModel)]="ingredient.expiryDate" [showIcon]="true"></p-calendar>
+            </div>
+
+            <div class="field">
+                <label for="name">Email</label>
+                <input type="email" pInputText id="email" [(ngModel)]="ingredient.email" required autofocus />
+                <small class="p-error" *ngIf="submitted && !ingredient.email">
+                    Email is required.
+                </small>
+            </div>
+            <div class="field">
+                <label for="name">Computer Serial No</label>
+                <input type="text" pInputText id="computerSerialNo" [(ngModel)]="ingredient.computerSerialNo" required
+                    autofocus />
+                <small class="p-error" *ngIf="submitted && !ingredient.computerSerialNo">
+                    Computer Serial No is required.
+                </small>
+            </div>
+            <div class="field">
+                <label for="description">Premise Address</label>
+                <textarea id="premiseAddress" pInputTextarea [(ngModel)]="ingredient.premiseAddress" required rows="3"
+                    cols="20">
+                    </textarea>
+            </div>
+
+
+
+            <!-- <div class="field">
+                <label class="mb-3">Category</label>
+                <div class="formgrid grid">
+                    <div class="field-radiobutton col-6">
+                        <p-radioButton id="category1" name="category" value="Accessories"
+                            [(ngModel)]="product.category" />
+                        <label for="category1">Accessories</label>
+                    </div>
+                    <div class="field-radiobutton col-6">
+                        <p-radioButton id="category2" name="category" value="Clothing" [(ngModel)]="product.category" />
+                        <label for="category2">Clothing</label>
+                    </div>
+                    <div class="field-radiobutton col-6">
+                        <p-radioButton id="category3" name="category" value="Electronics"
+                            [(ngModel)]="product.category" />
+                        <label for="category3">Electronics</label>
+                    </div>
+                    <div class="field-radiobutton col-6">
+                        <p-radioButton id="category4" name="category" value="Fitness" [(ngModel)]="product.category" />
+                        <label for="category4">Fitness</label>
+                    </div>
+                </div>
+            </div> -->
+
+            <!-- <div class="formgrid grid">
+                <div class="field col">
+                    <label for="price">Price</label>
+                    <p-inputNumber id="price" [(ngModel)]="product.price" mode="currency" currency="USD"
+                        locale="en-US" />
+                </div>
+                <div class="field col">
+                    <label for="quantity">Quantity</label>
+                    <p-inputNumber id="quantity" [(ngModel)]="product.quantity" />
+                </div>
+            </div> -->
+        </ng-template>
+
+        <ng-template pTemplate="footer">
+            <p-button label="Cancel" icon="pi pi-times" [text]="true" (onClick)="hideDialog()" />
+            <p-button label="Save" icon="pi pi-check" [text]="true" (onClick)="saveProduct()" />
+        </ng-template>
+    </p-dialog>
+
+    <p-confirmDialog [style]="{ width: '450px' }" />
+</div>
